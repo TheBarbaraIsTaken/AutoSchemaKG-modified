@@ -32,6 +32,39 @@ TRIPLE_INSTRUCTIONS = {
         ]
         Here is the passage:""",
     },
+    "hu": {
+        "system": "You are a helpful assistant who always responds with a valid array of JSON objects in Hungarian, without any explanation",
+        "entity_relation": """Given a passage, summarize all the important entities and the relations between them in a concise manner in Hungarian. Relations should briefly capture the connections between entities, without repeating information from the head and tail entities. The entities should be as specific as possible. Exclude pronouns from being considered as entities. 
+        You must **strictly output in the following JSON format**:\n
+        [
+            {
+                "Head": "{a noun in Hungarian}",
+                "Relation": "{a verb in Hungarian}",
+                "Tail": "{a noun in Hungarian}",
+            }...
+        ]
+        Here is the passage:""",
+
+        "event_entity":  """Please analyze and summarize the participation relations between the events and entities in the given paragraph in Hungarian. Each event is a single independent sentence. Additionally, identify all the entities that participated in the events. Do not use ellipses. 
+        You must **strictly output in the following JSON format**:\n
+        [
+            {
+                "Event": "{a simple sentence describing an event in Hungarian}",
+                "Entity": ["entity 1 in Hungarian", "entity 2 in Hungarian", "..."]
+            }...
+        ]
+        Here is the passage:""",
+        "event_relation":  """Please analyze and summarize the relationships between the events in the paragraph in Hungarian. Each event is a single independent sentence. Identify temporal and causal relationships between the events using the following types in Hungarian: előtte (before), utána (after), egy időben (at the same time), mert (because), and ennek eredményeként (as a result). Each extracted triple should be specific, meaningful, and able to stand alone.  Do not use ellipses.  
+        You must **strictly output in the following JSON format**:\n
+        [
+            {
+                "Head": "{a simple sentence describing the event 1 in Hungarian}",
+                "Relation": "{temporal or causality relation between the events in Hungarian}",
+                "Tail": "{a simple sentence describing the event 2 in Hungarian}"
+            }...
+        ]
+        Here is the passage:""",
+    },
     "zh-CN": {
         "system": """"你是一个始终以有效JSON数组格式回应的助手""",
         "entity_relation": """给定一段文字，提取所有重要实体及其关系，并以简洁的方式总结。关系描述应清晰表达实体间的联系，且不重复头尾实体的信息。实体需具体明确，排除代词。  
@@ -169,6 +202,75 @@ CONCEPT_INSTRUCTIONS = {
             Your answer: become part of, attend, take part in, engage in, involve in
             RELATION: be included in
             Your answer: join, be a part of, be a member of, be a component of
+            RELATION: [RELATION]
+            Your answer:"""
+    },
+    "hu": {
+        "event": """I will give you an EVENT. You need to give several phrases containing 1-2 words in Hungarian for the ABSTRACT EVENT of this EVENT.
+            You must return your answer in the following format: phrases1, phrases2, phrases3,...
+            You can't return anything other than answers.
+            These abstract event words should fulfill the following requirements.
+            1. The ABSTRACT EVENT phrases can well represent the EVENT, and it could be the type of the EVENT or the related concepts of the EVENT.    
+            2. Strictly follow the provided format, do not add extra characters or words.
+            3. Write at least 3 or more phrases in Hungarian at different abstract level if possible.
+            4. Do not repeat the same word and the input in the answer.
+            5. Stop immediately if you can't think of any more phrases, and no explanation is needed.
+
+            EVENT: Egy férfi visszavonul a hegyekbe és az erdőkbe.
+            Your answer: visszavonulás, pihenés, menekülés, természet, magány
+            EVENT: Egy macska a menedékébe üldözött egy zsákmányt
+            Your answer: vadászat, menekülés, ragadozás, rejtőzködés, cserkészés
+            EVENT: Sam a kutyájával játszik
+            Your answer: pihentető esemény, simogatás, játék, kötődés, barátság
+            EVENT: [EVENT]
+            Your answer:""",
+        "entity":"""I will give you an ENTITY. You need to give several phrases containing 1-2 words in Hungarian for the ABSTRACT ENTITY of this ENTITY.
+            You must return your answer in the following format: phrases1, phrases2, phrases3,...
+            You can't return anything other than answers.
+            These abstract intention words should fulfill the following requirements.
+            1. The ABSTRACT ENTITY phrases can well represent the ENTITY, and it could be the type of the ENTITY or the related concepts of the ENTITY.
+            2. Strictly follow the provided format, do not add extra characters or words.
+            3. Write at least 3 or more phrases in Hungarian at different abstract level if possible.
+            4. Do not repeat the same word and the input in the answer.
+            5. Stop immediately if you can't think of any more phrases, and no explanation is needed.
+
+            ENTITY: Lelki ismeretek
+            CONTEXT: bemutatták a BFI Londoni Filmfesztiválon, a legtöbb bevételt hozó Pixar-film lett
+            Your answer: film, mozi
+
+            ENTITY: Thinkpad X60
+            CONTEXT: Richard Stallman bejelentette, hogy Trisquel-t használ egy Thinkpad X60-on
+            Your answer: Thinkpad, laptop, gép, eszköz, hardver, számítógép, márka
+
+            ENTITY: Harry Callahan
+            CONTEXT: blöfföl egy másik rablónak, megkínozza Scorpiót
+            Your answer: személy, amerikai, karakter, rendőrtiszt, nyomozó
+
+            ENTITY: Black Mountain College
+            CONTEXT: John Andrew Rice alapította, vonzotta az oktatókat
+            Your answer: főiskola, egyetem, iskola, bölcsészettudományi főiskola
+
+            EVENT: Április 1.
+            CONTEXT: Utkal Dibas ünnepe
+            Your answer: dátum, nap, idő, fesztivál
+
+            ENTITY: [ENTITY]
+            CONTEXT: [CONTEXT]
+            Your answer:""",
+        "relation":"""I will give you an RELATION. You need to give several phrases containing 1-2 words in Hungarian for the ABSTRACT RELATION of this RELATION.
+            You must return your answer in the following format: phrases1, phrases2, phrases3,...
+            You can't return anything other than answers.
+            These abstract intention words should fulfill the following requirements.
+            1. The ABSTRACT RELATION phrases can well represent the RELATION, and it could be the type of the RELATION or the simplest concepts of the RELATION.
+            2. Strictly follow the provided format, do not add extra characters or words.
+            3. Write at least 3 or more phrases in Hungarian at different abstract level if possible.
+            4. Do not repeat the same word and the input in the answer.
+            5. Stop immediately if you can't think of any more phrases, and no explanation is needed.
+            
+            RELATION: részt vett
+            Your answer: része lett, részt vesz, csatlakozik, bekapcsolódik, közreműködik
+            RELATION: része valaminek
+            Your answer: csatlakozik, része, tagja, alkotóeleme
             RELATION: [RELATION]
             Your answer:"""
     },

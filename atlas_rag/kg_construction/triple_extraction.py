@@ -106,9 +106,9 @@ class DatasetProcessor:
         self.result_schema = result_schema
 
     def filter_language_content(self, sample: Dict[str, Any]) -> bool:
-        """Check if content is in English."""
+        """Check if content language is supported."""
         metadata = sample.get("metadata", {})
-        language = metadata.get("lang", "en")  # Default to English if not specified
+        language = self.config.language if self.config.language else metadata.get("lang", "en")
         supported_languages = list(self.prompt_instructions.keys())
         return language in supported_languages
     
@@ -213,8 +213,8 @@ class CustomDataLoader:
     def create_batch_instructions(self, batch_data: List[Dict[str, Any]]) -> List[str]:
         messages_dict = {key: [] for key in self.result_schema.keys()}
         for item in batch_data:
-            # get language
-            language = item.get("metadata",{}).get("lang", "en")
+            # get language (config override takes precedence over metadata)
+            language = self.processor.config.language if self.processor.config.language else item.get("metadata",{}).get("lang", "en")
             system_msg = self.prompt_instructions.get(language, self.prompt_instructions["en"])['system'] 
 
             for key in self.result_schema.keys():
@@ -468,6 +468,9 @@ class KnowledgeGraphExtractor:
     def generate_concept_csv_temp(self, batch_size: int = None, **kwargs):
         if self.config.benchmark and self.config.record:
             concept_start_time = time.time()
+        # Pass language from config if set
+        if self.config.language and 'language' not in kwargs:
+            kwargs['language'] = self.config.language
         generate_concept(
             model=self.model,
             input_file=f"{self.config.output_directory}/triples_csv/missing_concepts_{self.config.filename_pattern}_from_json.csv",
