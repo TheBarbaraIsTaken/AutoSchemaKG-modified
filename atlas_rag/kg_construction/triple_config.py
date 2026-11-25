@@ -33,3 +33,6 @@ class ProcessingConfig:
     # Text chunking parameters
     chunk_size: int = 8192  # Maximum characters per chunk
     chunk_overlap: int = 0   # Optional: overlap between chunks for context preservation
+    # efkg: the input texts are already chunked (one JSONL line = one chunk, "id" = chunk id);
+    # no further splitting, the text is used as it is
+    prechunked: bool = False

@@ -245,6 +245,11 @@ def json2csv(dataset, data_dir, output_dir, schema, custom, test=False):
     node_text_file = os.path.join(output_dir, f"text_nodes_{dataset}_from_json.csv")
     edge_text_file = os.path.join(output_dir, f"text_edges_{dataset}_from_json.csv")
     missing_concepts_file = os.path.join(output_dir, f"missing_concepts_{dataset}_from_json.csv")
+    # efkg: provenance. The merge above keeps a node only once and links it to the first text only;
+    # these two files record every occurrence of every node and triple with the id of its input
+    # text (data["id"], the chunk id for pre-chunked input).
+    node_sources_file = os.path.join(output_dir, f"node_sources_{dataset}_from_json.csv")
+    edge_sources_file = os.path.join(output_dir, f"edge_sources_{dataset}_from_json.csv")
 
     if test:
         node_text_file = os.path.join(output_dir, f"text_nodes_{dataset}_from_json_test.csv")
@@ -257,12 +262,29 @@ def json2csv(dataset, data_dir, output_dir, schema, custom, test=False):
     with open(node_text_file, "w", newline='', encoding='utf-8', errors='ignore') as csvfile_node_text, \
          open(edge_text_file, "w", newline='', encoding='utf-8', errors='ignore') as csvfile_edge_text, \
          open(node_csv_without_emb, "w", newline='', encoding='utf-8', errors='ignore') as csvfile_node, \
-         open(edge_csv_without_emb, "w", newline='', encoding='utf-8', errors='ignore') as csvfile_edge:
+         open(edge_csv_without_emb, "w", newline='', encoding='utf-8', errors='ignore') as csvfile_edge, \
+         open(node_sources_file, "w", newline='', encoding='utf-8', errors='ignore') as csvfile_node_src, \
+         open(edge_sources_file, "w", newline='', encoding='utf-8', errors='ignore') as csvfile_edge_src:
 
         csv_writer_node_text = csv.writer(csvfile_node_text)
         csv_writer_edge_text = csv.writer(csvfile_edge_text)
         writer_node = csv.writer(csvfile_node)
         writer_edge = csv.writer(csvfile_edge)
+        writer_node_src = csv.writer(csvfile_node_src)  # efkg
+        writer_edge_src = csv.writer(csvfile_edge_src)  # efkg
+        writer_node_src.writerow(["name", "type", "source_id", "text_id"])
+        writer_edge_src.writerow(["head", "tail", "relation", "kind", "source_id", "text_id"])
+        seen_node_src, seen_edge_src = set(), set()
+
+        def record_node_source(name, node_type, source_id, text_id):  # efkg
+            if (name, node_type, source_id) not in seen_node_src:
+                seen_node_src.add((name, node_type, source_id))
+                writer_node_src.writerow([name, node_type, source_id, text_id])
+
+        def record_edge_source(head, tail, relation, kind, source_id, text_id):  # efkg
+            if (head, tail, relation, kind, source_id) not in seen_edge_src:
+                seen_edge_src.add((head, tail, relation, kind, source_id))
+                writer_edge_src.writerow([head, tail, relation, kind, source_id, text_id])
 
         # Write headers
         csv_writer_node_text.writerow(["text_id:ID", "original_text", ":LABEL"])
@@ -388,6 +410,9 @@ def json2csv(dataset, data_dir, output_dir, schema, custom, test=False):
 
                         all_relations.add(relation)
                         writer_edge.writerow([head_entity, tail_entity, relation, [], [], "Relation"])
+                        record_node_source(head_entity, "entity", file_id, text_hash_id)  # efkg
+                        record_node_source(tail_entity, "entity", file_id, text_hash_id)
+                        record_edge_source(head_entity, tail_entity, relation, "entity_relation", file_id, text_hash_id)
 
                     for event_triple in event_triples:
                         head_event, relation, tail_event = event_triple
@@ -413,6 +438,9 @@ def json2csv(dataset, data_dir, output_dir, schema, custom, test=False):
 
                         all_relations.add(relation)
                         writer_edge.writerow([head_event, tail_event, relation, [], [], "Relation"])
+                        record_node_source(head_event, "event", file_id, text_hash_id)  # efkg
+                        record_node_source(tail_event, "event", file_id, text_hash_id)
+                        record_edge_source(head_event, tail_event, relation, "event_relation", file_id, text_hash_id)
 
                     for event_entity_triple in event_entity_triples:
                         head_event, relation, tail_entity = event_entity_triple
@@ -438,6 +466,9 @@ def json2csv(dataset, data_dir, output_dir, schema, custom, test=False):
 
                         all_relations.add(relation)
                         writer_edge.writerow([head_event, tail_entity, relation, [], [], "Relation"])
+                        record_node_source(head_event, "event", file_id, text_hash_id)  # efkg
+                        record_node_source(tail_entity, "entity", file_id, text_hash_id)
+                        record_edge_source(head_event, tail_entity, relation, "event_entity", file_id, text_hash_id)
 
     # Write missing concepts to CSV
     with open(missing_concepts_file, "w", newline='', encoding='utf-8', errors='ignore') as csvfile:

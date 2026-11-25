@@ -116,9 +116,13 @@ class DatasetProcessor:
     def create_sample_chunks(self, sample: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Create chunks from a single sample."""
         original_text = sample.get("text", "")
-        if self.config.remove_doc_spaces:
-            original_text = re.sub(r'\s+', ' ',original_text).strip()
-        text_chunks = self.chunker.split_text(original_text)
+        if self.config.prechunked:
+            # efkg: pre-chunked input, one sample = one chunk, no splitting
+            text_chunks = [original_text] if original_text else []
+        else:
+            if self.config.remove_doc_spaces:
+                original_text = re.sub(r'\s+', ' ',original_text).strip()
+            text_chunks = self.chunker.split_text(original_text)
         chunks = []
         self.text_set = set()  # For deduplication
         for chunk_idx, chunk_text in enumerate(text_chunks):
